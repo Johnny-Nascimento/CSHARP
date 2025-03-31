@@ -37,6 +37,8 @@ static void MostrarMenu()
     Console.WriteLine();
     Console.WriteLine("1. Ler arquivo de boletos");
     Console.WriteLine();
+    Console.WriteLine("2. Gravar boletos agrupados");
+    Console.WriteLine();
     Console.Write("Digite o número da opção desejada: ");
 }
 
@@ -46,6 +48,10 @@ static void ExecutarEscolha(int escolha)
     {
         case 1:
             LerArquivoBoletos();
+            break;
+
+        case 2:
+            GravarArquivosAgrupados();
             break;
 
         default:
@@ -63,6 +69,18 @@ static void LerArquivoBoletos()
 
     foreach (var boleto in boletos)
     {
-        Console.WriteLine($"Cedente: {boleto.CedenteNome}, Valor: {boleto.Valor:#0.00}, Vencimento: {boleto.DataVencimento}");
+        Console.WriteLine($"Cedente: {boleto.CedenteNome}, Valor: {boleto.Valor:#0.00}, Vencimento: {boleto.DataVencimento} Multa: {boleto.Multa}");
     }
+}
+
+static void GravarArquivosAgrupados()
+{
+    Console.WriteLine("Gravando arquivos...");
+
+    var leitorDeBoleto = new LeitorDeBoleto();
+    List<Boleto> boletos = leitorDeBoleto.LerBoletos("Boletos.csv");
+
+    RelatorioDeBoleto relatorio = new RelatorioDeBoleto("BoletosAgrupados.csv", DateTime.Now);
+
+    relatorio.Processar(boletos);
 }

@@ -22,6 +22,8 @@
         // Outras Informações
         public string CodigoBarras { get; set; }
         public string LinhaDigitavel { get; set; }
+
+        public decimal Multa { get; set; }
     }
 
 }
