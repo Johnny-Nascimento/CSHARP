@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,38 +11,63 @@ namespace ByteBank.Common
     {
         public List<Boleto> LerBoletos(string caminhoArquivo)
         {
-            throw new NotImplementedException();
-            
             // montar lista de boletos
+            var boletos = new List<Boleto>();
 
             // ler arquivo de boletos
-
+            using (var reader = new StreamReader(caminhoArquivo))
+            {
                 // ler cabeçalho do arquivo CSV
+                string? linha = reader.ReadLine();
+                if (linha == null)
+                    throw new Exception("Arquivo inválido");
+
+                string[] cabecalho = linha.Split(',');
 
                 // para cada linha do arquivo CSV
+                while (!reader.EndOfStream)
+                {
                     // ler dados
+                    linha = reader.ReadLine();
+                    if (linha == null)
+                        throw new Exception("Arquivo inválido");
+
+                    string[] dados = linha.Split(',');
+
                     // carregar objeto Boleto
+                    Boleto boleto = MapearTextoParaObjeto<Boleto>(cabecalho, dados);
+
                     // adicionar boleto à lista
+                    boletos.Add(boleto);
+                }
+            }
 
             // retornar lista de boletos
+            return boletos;
         }
 
-        private Boleto MapearTextoParaBoleto(string[] nomesPropriedades, string[] valoresPropriedades)
+        private T MapearTextoParaObjeto<T>(string[] nomesPropriedades, string[] valoresPropriedades)
         {
-            Boleto instancia = new Boleto();
-            instancia.CedenteNome = valoresPropriedades[0];
-            instancia.CedenteCpfCnpj = valoresPropriedades[1];
-            instancia.CedenteAgencia = valoresPropriedades[2];
-            instancia.CedenteConta = valoresPropriedades[3];
-            instancia.SacadoNome = valoresPropriedades[4];
-            instancia.SacadoCpfCnpj = valoresPropriedades[5];
-            instancia.SacadoEndereco = valoresPropriedades[6];
-            instancia.Valor = Convert.ToDecimal(valoresPropriedades[7]);
-            instancia.DataVencimento = Convert.ToDateTime(valoresPropriedades[8]);
-            instancia.NumeroDocumento = valoresPropriedades[9];
-            instancia.NossoNumero = valoresPropriedades[10];
-            instancia.CodigoBarras = valoresPropriedades[11];
-            instancia.LinhaDigitavel = valoresPropriedades[12];
+            T instancia = Activator.CreateInstance<T>();
+            if (instancia == null)
+                throw new Exception("Erro na criação da instância do objeto");
+
+            for (int i = 0; i < nomesPropriedades.Length; i++)
+            {
+                string nomePropriedade = nomesPropriedades[i];
+                PropertyInfo? propertyInfo = instancia.GetType().GetProperty(nomePropriedade);
+
+                if (propertyInfo != null)
+                {
+                    Type propertyType = propertyInfo.PropertyType;
+                    string valor = valoresPropriedades[i];
+
+                    object valorConvertido = Convert.ChangeType(valor, propertyType);
+
+                    propertyInfo.SetValue(instancia, valorConvertido);
+                }
+            }
+
             return instancia;
         }
     }
