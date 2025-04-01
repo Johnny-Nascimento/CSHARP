@@ -45,6 +45,14 @@ namespace ByteBank.Common
             // Obter tipo da classe
             Type tipo = typeof(BoletosPorCedente);
 
+
+            // Obter atributo da classe para titulo do relatório
+            var titulo = tipo.GetCustomAttributes<NomeColunaAttribute>().FirstOrDefault()?.Header ?? tipo.Name;
+
+            Console.WriteLine("-------------");
+            Console.WriteLine(titulo);
+            Console.WriteLine("-------------");
+
             // Usar Reflection para obter propriedades
             PropertyInfo[] propriedades = tipo.GetProperties();
 
@@ -52,7 +60,8 @@ namespace ByteBank.Common
             using (var sw = new StreamWriter(nomeArquivoSaida))
             {
                 // Escrever cabeçalho
-                var cabecalho = propriedades.Select(p => p.Name);
+                var cabecalho = propriedades
+                    .Select(p => p.GetCustomAttributes<NomeColunaAttribute>().FirstOrDefault()?.Header ?? p.Name);
 
                 sw.WriteLine(string.Join(',', cabecalho));
 

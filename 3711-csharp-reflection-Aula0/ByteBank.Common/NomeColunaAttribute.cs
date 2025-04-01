@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ByteBank.Common
 {
-    [AttributeUsage(AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
     public class NomeColunaAttribute : Attribute
     {
         public string Header { get; }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ByteBank.Common
 {
+    [NomeColuna("Boletos por Cedente")]
     internal class BoletosPorCedente
     {
         [NomeColuna("Cedente Nome")]
@@ -23,7 +24,7 @@ namespace ByteBank.Common
         [NomeColuna("Total")]
         public decimal Valor { get; set; }
 
-        [NomeColuna("Qtd")]
+        // Sem atributo para mostrar que o código consegue usar o nome da propriedade quando não encontrar um custom attribute
         public int Quantidade { get; set; }
     }
 }
