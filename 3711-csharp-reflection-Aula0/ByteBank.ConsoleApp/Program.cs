@@ -80,7 +80,28 @@ static void GravarArquivosAgrupados()
     var leitorDeBoleto = new LeitorDeBoleto();
     List<Boleto> boletos = leitorDeBoleto.LerBoletos("Boletos.csv");
 
-    RelatorioDeBoleto relatorio = new RelatorioDeBoleto("BoletosAgrupados.csv", DateTime.Now);
+    var nomeParametroConstrutor = "nomeArquivoSaida";
+    var parametroConstrutor = "BoletosAgrupados.csv";
+    var nomeMetodo = "Processar";
+    var parametroMetodo = boletos;
 
-    relatorio.Processar(boletos);
+    ProcessarDinamicamente(nomeParametroConstrutor, parametroConstrutor, nomeMetodo, parametroMetodo);
+}
+
+static void ProcessarDinamicamente(string nomeParametroConstrutor, string parametroConstrutor, string nomeMetodo, List<Boleto> parametroMetodo)
+{
+    var tipoClasseRelatorio = typeof(RelatorioDeBoleto);
+    var construtores = tipoClasseRelatorio.GetConstructors();
+
+    var construtor = construtores
+        .Single(c => c.GetParameters().Length == 1 &&
+        c.GetParameters().Any(p => p.Name == nomeParametroConstrutor));
+
+    var instanciaClasse = construtor.Invoke(new object[] { parametroConstrutor });
+
+    var metodoProcessar = tipoClasseRelatorio.GetMethod(nomeMetodo);
+
+    if (metodoProcessar == null) throw new Exception("Erro na tentativa de encontrar um método válido");
+
+    metodoProcessar.Invoke(instanciaClasse, new object[] { parametroMetodo });
 }
