@@ -1,48 +1,34 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json;
 using System.Reflection;
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 
 namespace ByteBank.Common
 {
-    public interface IRelatorioDeBoleto<T>
-    {
-        void Processar(List<T> boletos);
-    }
-
-    public class RelatorioDeBoleto : IRelatorioDeBoleto<Boleto>
+    public class RelatorioDeBoletoJSON : IRelatorio<Boleto>
     {
         private readonly string nomeArquivoSaida;
         private readonly DateTime dataRelatorio;
 
-        public RelatorioDeBoleto(string nomeArquivoSaida, DateTime dataRelatorio)
+        public RelatorioDeBoletoJSON(string nomeArquivoSaida, DateTime dataRelatorio)
         {
             this.nomeArquivoSaida = nomeArquivoSaida;
             this.dataRelatorio = dataRelatorio;
         }
 
-        public RelatorioDeBoleto(DateTime dataRelatorio)
+        public RelatorioDeBoletoJSON(DateTime dataRelatorio)
         {
             this.dataRelatorio = dataRelatorio;
             this.nomeArquivoSaida = "RelatorioDeBoleto.csv";
         }
 
-        public RelatorioDeBoleto(string nomeArquivoSaida)
+        public RelatorioDeBoletoJSON(string nomeArquivoSaida)
         {
             this.nomeArquivoSaida = nomeArquivoSaida;
             this.dataRelatorio = DateTime.Now;
         }
 
-        public void Processar(List<string> lista)
-        {
-            Console.WriteLine($"--------{this.dataRelatorio}--------");
-
-            Console.WriteLine(string.Join("\n", lista));
-        }
-
         public void Processar(List<Boleto> boletos)
         {
-            Console.WriteLine($"--------{ this.dataRelatorio }--------");
+            Console.WriteLine($"--------{this.dataRelatorio}--------");
 
             var boletosPorCedente = PegaBoletosAgrupados(boletos);
 
@@ -54,7 +40,6 @@ namespace ByteBank.Common
             // Obter tipo da classe
             Type tipo = typeof(BoletosPorCedente);
 
-
             // Obter atributo da classe para titulo do relatório
             var titulo = tipo.GetCustomAttributes<NomeColunaAttribute>().FirstOrDefault()?.Header ?? tipo.Name;
 
@@ -62,23 +47,15 @@ namespace ByteBank.Common
             Console.WriteLine(titulo);
             Console.WriteLine("-------------");
 
-            // Usar Reflection para obter propriedades
-            PropertyInfo[] propriedades = tipo.GetProperties();
-
             // Escrever os dados no arquivo CSV
             using (var sw = new StreamWriter(nomeArquivoSaida))
             {
-                // Escrever cabeçalho
-                var cabecalho = propriedades
-                    .Select(p => p.GetCustomAttributes<NomeColunaAttribute>().FirstOrDefault()?.Header ?? p.Name);
-
-                sw.WriteLine(string.Join(',', cabecalho));
-
                 // Escrever linhas do relatório
                 foreach (var grupo in grupos)
                 {
-                    var valores = propriedades.Select(p => p.GetValue(grupo));
-                    sw.WriteLine(string.Join(',', valores));
+                    string json = JsonSerializer.Serialize(grupo);
+
+                    sw.WriteLine(json);
                 }
             }
 
@@ -119,5 +96,6 @@ namespace ByteBank.Common
 
             return boletosPorCedenteList;
         }
+
     }
 }

@@ -40,7 +40,7 @@ static void MostrarMenu()
     Console.WriteLine();
     Console.WriteLine("2. Gravar boletos agrupados");
     Console.WriteLine();
-    Console.WriteLine("3. Lista de teste");
+    Console.WriteLine("3. Executar plugins");
     Console.WriteLine();
     Console.Write("Digite o número da opção desejada: ");
 }
@@ -58,12 +58,12 @@ static void ExecutarEscolha(int escolha)
         break;
 
         case 3:
-            GeraRelatorioDeTeste();
+            ExecutarPlugins();
         break;
 
         default:
             Console.WriteLine("Opção inválida. Tente novamente.");
-            break;
+        break;
     }
 }
 
@@ -90,7 +90,7 @@ static void GravarArquivosAgrupados()
     string[] nomeParametroConstrutor = { "nomeArquivoSaida", "dataRelatorio" };
     object[] valoresParametrosConstrutor = { "BoletosAgrupados.csv", new DateTime(1998, 02, 27) };
     var nomeMetodo = "Processar";
-    Type tipoRelatorio = typeof(RelatorioDeBoleto);
+    Type tipoRelatorio = typeof(RelatorioDeBoletoCSV);
 
     ProcessarDinamicamente<Boleto>(tipoRelatorio, nomeParametroConstrutor, valoresParametrosConstrutor, nomeMetodo, boletos);
 }
@@ -118,16 +118,40 @@ static void ProcessarDinamicamente<T>(Type tipoRelatorio, string[] nomeParametro
     metodoProcessar.Invoke(instanciaClasse, new object[] { parametroMetodo });
 }
 
-static void GeraRelatorioDeTeste()
+static List<Type> ObterClassesDePlugin<T>()
 {
-    Console.WriteLine("Este é um relatorio de teste");
+    var tiposEncontrados = new List<Type>();
 
-    string[] nomeParametroConstrutor = { "nomeArquivoSaida"};
-    object[] valoresParametrosConstrutor = { "BoletosAgrupados.csv" };
-    var nomeMetodo = "Processar";
-    Type tipoRelatorio = typeof(RelatorioDeBoleto);
+    Assembly assemblyEmExecucao = Assembly.GetExecutingAssembly();
+    Assembly assemblyDosPlugins = typeof(T).Assembly;
 
-    List<string> listaTeste = new List<string> { "teste1", "teste2", "teste3" };
+    var tipos = assemblyDosPlugins.GetTypes();
 
-    ProcessarDinamicamente<string>(tipoRelatorio, nomeParametroConstrutor, valoresParametrosConstrutor, nomeMetodo, listaTeste);
+    var tiposImplementandoT = tipos.Where(t => typeof(T).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract);
+
+    tiposEncontrados.AddRange(tiposImplementandoT);
+
+    return tiposEncontrados;
+}
+
+static void ExecutarPlugins()
+{
+    //Ler boletos a partir do arquivo CSV
+    var leitorDeCSV = new LeitorDeBoleto();
+    List<Boleto> boletos = leitorDeCSV.LerBoletos("Boletos.csv");
+
+    //Obter classes de plugin 
+    List<Type> classesDePlugin = ObterClassesDePlugin<IRelatorio<Boleto>>();
+
+    foreach (var classe in classesDePlugin)
+    {
+        string extensao = classe.ToString().Contains("JSON") ? ".json" : ".csv";
+
+        // Criar uma instância do plugin
+        var plugin = Activator.CreateInstance(classe, new object[] { "BoletosPorCedente" + extensao });
+
+        // Chamar o método Processar usando Reflection
+        MethodInfo metodoSalvar = classe.GetMethod("Processar", new Type[] { boletos.GetType() });
+        metodoSalvar.Invoke(plugin, new object[] { boletos });
+    }
 }
