@@ -1,5 +1,6 @@
 ﻿using ByteBank.Common;
 using System.Reflection;
+using System.Runtime.Loader;
 
 MostrarBanner();
 
@@ -123,13 +124,17 @@ static List<Type> ObterClassesDePlugin<T>()
     var tiposEncontrados = new List<Type>();
 
     Assembly assemblyEmExecucao = Assembly.GetExecutingAssembly();
-    Assembly assemblyDosPlugins = typeof(T).Assembly;
 
-    var tipos = assemblyDosPlugins.GetTypes();
+    var assemblies = ObterAssemblysDosPlugins();
 
-    var tiposImplementandoT = tipos.Where(t => typeof(T).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract);
+    foreach ( Assembly assembly in assemblies )
+    {
+        Console.WriteLine($"Assembly encontrado: {assembly.FullName}");
 
-    tiposEncontrados.AddRange(tiposImplementandoT);
+        IEnumerable<Type> tiposImplementandoT = ObterTiposDoAssembly<T>(assembly);
+
+        tiposEncontrados.AddRange(tiposImplementandoT);
+    }    
 
     return tiposEncontrados;
 }
@@ -148,10 +153,38 @@ static void ExecutarPlugins()
         string extensao = classe.ToString().Contains("JSON") ? ".json" : ".csv";
 
         // Criar uma instância do plugin
-        var plugin = Activator.CreateInstance(classe, new object[] { "BoletosPorCedente" + extensao });
+        // var plugin = Activator.CreateInstance(classe, new object[] { "BoletosPorCedente" + extensao });
+
+        var plugin = Activator.CreateInstance(classe);
 
         // Chamar o método Processar usando Reflection
         MethodInfo metodoSalvar = classe.GetMethod("Processar", new Type[] { boletos.GetType() });
         metodoSalvar.Invoke(plugin, new object[] { boletos });
     }
+}
+
+static IEnumerable<Type> ObterTiposDoAssembly<T>(Assembly assemblyDosPlugins)
+{
+    var tipos = assemblyDosPlugins.GetTypes();
+
+    var tiposImplementandoT = tipos.Where(t => typeof(T).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract);
+    return tiposImplementandoT;
+}
+
+static List<Assembly> ObterAssemblysDosPlugins()
+{
+    List<Assembly> assemlbies = new List<Assembly>();
+
+    const string diretorio = @"C:\Plugins";
+
+    string[] arquivosDll = Directory.GetFiles(diretorio, "*.dll");
+
+    foreach (var arquivoDll in arquivosDll)
+    {
+        var assembly = Assembly.LoadFrom(arquivoDll);
+
+        assemlbies.Add(assembly);
+    }
+
+    return assemlbies;
 }

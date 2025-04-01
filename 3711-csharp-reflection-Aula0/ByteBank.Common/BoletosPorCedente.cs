@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ByteBank.Common
 {
     [NomeColuna("Boletos por Cedente")]
-    internal class BoletosPorCedente
+    public class BoletosPorCedente
     {
         [NomeColuna("Cedente Nome")]
         public string? CedenteNome { get; set; }
