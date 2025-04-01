@@ -33,8 +33,17 @@ namespace ByteBank.Common
             this.dataRelatorio = DateTime.Now;
         }
 
+        public void Processar(List<string> lista)
+        {
+            Console.WriteLine($"--------{this.dataRelatorio}--------");
+
+            Console.WriteLine(string.Join("\n", lista));
+        }
+
         public void Processar(List<Boleto> boletos)
         {
+            Console.WriteLine($"--------{ this.dataRelatorio }--------");
+
             var boletosPorCedente = PegaBoletosAgrupados(boletos);
 
             GravarArquivo(boletosPorCedente);
