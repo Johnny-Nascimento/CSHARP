@@ -10,6 +10,7 @@ public class Usuario
         Nome = nome;
         Email = email;
         Telefones = telefone;
+        return;
 
         ChavesAcesso = new List<int>();
         Stopwatch stopwatch = new Stopwatch();
