@@ -1,4 +1,5 @@
 using Adopet.Data;
+using Adopet.Exceptions.Handlers;
 using Adopet.Repositories;
 using Adopet.Services;
 using Microsoft.EntityFrameworkCore;
@@ -22,8 +23,14 @@ builder.Services.AddScoped<PetService>();
 builder.Services.AddScoped<TutorService>();
 builder.Services.AddScoped<ImageStorageService>();
 
+builder.Services.AddExceptionHandler<NullReferenceExceptionHandle>();
+builder.Services.AddExceptionHandler<PetIndisponivelExceptionHandle>();
+builder.Services.AddExceptionHandler<PetEstaSendoAdotadoExceptionHandle>();
+builder.Services.AddExceptionHandler<TutorComLimiteAtingidoExceptionHandle>();
+
 var app = builder.Build();
 
+app.UseExceptionHandler(_ => { });
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();
