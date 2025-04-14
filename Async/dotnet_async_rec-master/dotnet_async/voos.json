@@ -1,0 +1,37 @@
+[
+  {
+    "Id": 1,
+    "Origem": "Brasilia",
+    "Destino": "Recife",
+    "Preco": 2000,
+    "MilhasNecessarias": 10000
+  },
+  {
+    "Id": 2,
+    "Origem": "Vitória",
+    "Destino": "São Paulo",
+    "Preco": 2500,
+    "MilhasNecessarias": 15000
+  },
+  {
+    "Id": 3,
+    "Origem": "Salvador",
+    "Destino": "Florianópolis",
+    "Preco": 3000,
+    "MilhasNecessarias": 20000
+  },
+  {
+    "Id": 4,
+    "Origem": "Rio de Janeiro",
+    "Destino": "Curitiba",
+    "Preco": 1800,
+    "MilhasNecessarias": 12000
+  },
+  {
+    "Id": 5,
+    "Origem": "Fortaleza",
+    "Destino": "Belo Horizonte",
+    "Preco": 2200,
+    "MilhasNecessarias": 13000
+  }
+]
