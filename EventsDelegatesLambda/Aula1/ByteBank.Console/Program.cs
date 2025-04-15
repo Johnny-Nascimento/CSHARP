@@ -58,26 +58,40 @@
 
     static CaixaEletronico caixaEletronico = new CaixaEletronico();
 
+    delegate void ConsultaBancaria();
+    delegate void TransacaoBancaria(decimal valor);
+
+
     private static void Saldo()
     {
-        caixaEletronico.Saldo();
+        ExecutarConsultaBancaria(caixaEletronico.Saldo);
     }
 
     private static void Depositar()
     {
-        caixaEletronico.Depositar(100);
-        caixaEletronico.Depositar(40);
-        caixaEletronico.Depositar(25);
+        ExecutarTransacaoBancaria(caixaEletronico.Depositar, 100);
+        ExecutarTransacaoBancaria(caixaEletronico.Depositar, 40);
+        ExecutarTransacaoBancaria(caixaEletronico.Depositar, 25);
     }
 
     private static void Sacar()
     {
-        caixaEletronico.Sacar(50);
-        caixaEletronico.Sacar(20);
+        ExecutarTransacaoBancaria(caixaEletronico.Sacar, 50);
+        ExecutarTransacaoBancaria(caixaEletronico.Sacar, 20);
     }
 
     private static void Extrato()
     {
-        caixaEletronico.Extrato();
+        ExecutarConsultaBancaria(caixaEletronico.Extrato);
+    }
+
+    private static void ExecutarConsultaBancaria(ConsultaBancaria consultaBancaria)
+    {
+        consultaBancaria();
+    }
+
+    private static void ExecutarTransacaoBancaria(TransacaoBancaria transacaoBancaria, decimal valor)
+    {
+        transacaoBancaria(valor);
     }
 }
