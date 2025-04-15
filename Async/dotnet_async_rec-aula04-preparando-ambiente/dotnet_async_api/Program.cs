@@ -34,14 +34,37 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapGet("/Hello", () => "Hello World! - API online.").WithTags("Voos").WithSummary("Verificação do status 'Online'").WithOpenApi();
+app.MapGet("/Hello", async () => {
+    await Task.FromResult("Hello World! - API online.");
+    })
+    .WithTags("Voos").WithSummary("Verificação do status 'Online'").WithOpenApi();
 
-app.MapGet("/voos", async ([FromServices]JornadaMilhasContext context) => { 
+app.MapGet("/voos", async ([FromServices]JornadaMilhasContext context, CancellationToken token = default) => {
 
-    Task.Delay(5000).Wait();
-    return await context.Voos.ToListAsync();
+    try
+    {
+        token.ThrowIfCancellationRequested();
+        var voos = await context.Voos.ToListAsync(token);
+
+        return Results.Ok(voos);
+    }
+    catch(OperationCanceledException ex)
+    {
+        return Results.Problem($"Operação cancelada: {ex.Message}");
+    }
 
 }).WithTags("Voos").WithSummary("Lista os vôos cadastrados.").WithOpenApi();
+
+app.MapGet("/voos/{id}", async([FromServices] JornadaMilhasContext context, int id) => {
+    Task.Delay(5000).Wait();
+
+    var voo = await context.Voos.FindAsync(id);
+
+    if (voo == null)
+        return Results.NotFound();
+
+    return Results.Ok(voo);
+});
 
 app.MapPost("/voos/comprar",async([FromServices]JornadaMilhasContext context, [FromBody] CompraPassagemRequest request) =>
 {
