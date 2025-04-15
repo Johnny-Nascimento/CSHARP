@@ -125,7 +125,7 @@
 public class ItemExtrato
 {
     public DateTime Data { get; set; }
-    public string Descricao { get; set; }
+    public string Descricao { get; set; } = string.Empty;
     public SinalOperacao Sinal { get; set; }
     public decimal Valor { get; set; }
 
