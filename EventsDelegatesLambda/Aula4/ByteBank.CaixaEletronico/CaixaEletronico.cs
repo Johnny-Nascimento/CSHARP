@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Linq.Expressions;
+using System.Text;
 
 namespace ByteBank.CaixaEletronico
 {
@@ -8,6 +9,21 @@ namespace ByteBank.CaixaEletronico
         private const decimal LIMITE = 500;
         private decimal saldo;
         private List<ItemExtrato> itensExtrato = new();
+        private Func<string, decimal, SinalOperacao, DateTime, ItemExtrato> criarItemExtrato = (descricao, valor, sinal, data) => 
+        {
+            return new ItemExtrato
+            {
+                Data = data,
+                Descricao = descricao,
+                Valor = valor,
+                Sinal = sinal
+            };
+        };
+
+        Action<StringBuilder> imprimirSeparador = (sb) =>
+        {
+            sb.AppendLine(new string('=', LarguraExtrato));
+        };
 
         public event SaldoInsuficienteEventHandler OnSaldoInsuficiente;
         public event DepositoEventHandler OnDeposito;
@@ -17,13 +33,7 @@ namespace ByteBank.CaixaEletronico
         public CaixaEletronico()
         {
             saldo = 100;
-            var item = new ItemExtrato
-            {
-                Data = DateTime.Now.AddDays(-2),
-                Descricao = "Saldo Inicial",
-                Valor = saldo,
-                Sinal = SinalOperacao.Credito
-            };
+            var item = criarItemExtrato("Saldo Inicial", saldo, SinalOperacao.Credito, DateTime.Now.AddDays(-2));
             itensExtrato.Add(item);
         }
 
@@ -48,13 +58,7 @@ namespace ByteBank.CaixaEletronico
         public void Depositar(decimal valor)
         {
             saldo += valor;
-            var item = new ItemExtrato
-            {
-                Data = DateTime.Now,
-                Descricao = "Depósito",
-                Valor = valor,
-                Sinal = SinalOperacao.Credito
-            };
+            var item = criarItemExtrato("Depósito", valor, SinalOperacao.Credito, DateTime.Now);
 
             itensExtrato.Add(item);
             OnDeposito?.Invoke(this, new TransacaoEventArgs(saldo, valor));
@@ -74,13 +78,7 @@ namespace ByteBank.CaixaEletronico
             }
 
             saldo -= valor;
-            var item = new ItemExtrato
-            {
-                Data = DateTime.Now,
-                Descricao = "Saque",
-                Valor = valor,
-                Sinal = SinalOperacao.Debito
-            };
+            var item = criarItemExtrato("Saque", valor, SinalOperacao.Debito, DateTime.Now);
 
             itensExtrato.Add(item);
             OnSaque?.Invoke(this, new TransacaoEventArgs(saldo, valor));
@@ -88,9 +86,9 @@ namespace ByteBank.CaixaEletronico
 
         private void ImprimirCabecalho(StringBuilder stringBuilder)
         {
-            stringBuilder.AppendLine(new string('=', LarguraExtrato));
+            imprimirSeparador(stringBuilder);
             stringBuilder.AppendLine(string.Format("{0,-20} {1,-25} {2,18}", "Data/Hora", "Descrição", "Valor (R$)"));
-            stringBuilder.AppendLine(new string('=', LarguraExtrato));
+            imprimirSeparador(stringBuilder);
         }
 
         private void ImprimirItemExtrato(StringBuilder stringBuilder, ItemExtrato item)
@@ -100,10 +98,10 @@ namespace ByteBank.CaixaEletronico
 
         private void ImprimirSaldo(StringBuilder stringBuilder)
         {
-            stringBuilder.AppendLine(new string('=', LarguraExtrato));
+            imprimirSeparador(stringBuilder);
             string valor = saldo.ToString("N2").PadLeft(18);
             stringBuilder.AppendLine(string.Format("{0,-20} {1,-25} {2,18}", string.Empty, "Saldo", valor));
-            stringBuilder.AppendLine(new string('=', LarguraExtrato));
+            imprimirSeparador(stringBuilder);
         }
     }
 
