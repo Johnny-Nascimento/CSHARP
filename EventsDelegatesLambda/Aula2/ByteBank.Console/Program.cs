@@ -2,6 +2,7 @@
 {
     private static void Main(string[] args)
     {
+        caixaEletronico.OnSaldoInsuficiente += CaixaEletronico_OnSaldoInsuficiente;
 
         new Logo().MostrarBanner();
 
@@ -19,6 +20,11 @@
             }
         }
 
+    }
+
+    private static void CaixaEletronico_OnSaldoInsuficiente(Object? sender, EventArgs args)
+    {
+        Console.WriteLine("Saldo insuficiente.");
     }
 
     static void MostrarMenu()
