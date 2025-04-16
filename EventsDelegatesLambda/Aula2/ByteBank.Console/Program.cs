@@ -22,9 +22,9 @@
 
     }
 
-    private static void CaixaEletronico_OnSaldoInsuficiente(Object? sender, EventArgs args)
+    private static void CaixaEletronico_OnSaldoInsuficiente(Object? sender, SaldoInsuficienteEventArgs e)
     {
-        Console.WriteLine("Saldo insuficiente.");
+        Console.WriteLine($"Saldo insuficiente. Saldo:{e.Saldo} Valor Saque:{e.Saque}");
     }
 
     static void MostrarMenu()
