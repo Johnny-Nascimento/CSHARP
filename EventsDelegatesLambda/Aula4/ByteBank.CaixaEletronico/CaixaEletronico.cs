@@ -20,7 +20,7 @@ namespace ByteBank.CaixaEletronico
             };
         };
 
-        Action<StringBuilder> imprimirSeparador = (sb) =>
+        private Action<StringBuilder> imprimirSeparador = (sb) =>
         {
             sb.AppendLine(new string('=', LarguraExtrato));
         };
