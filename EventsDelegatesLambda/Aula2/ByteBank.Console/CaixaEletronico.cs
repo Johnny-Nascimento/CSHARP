@@ -1,8 +1,12 @@
-﻿public class CaixaEletronico
+﻿public delegate void SaldoInsuficienteHandler();
+
+public class CaixaEletronico
 {
     private const int LarguraExtrato = 80;
     private decimal saldo;
     private List<ItemExtrato> itensExtrato = new();
+
+    private event SaldoInsuficienteHandler OnSaldoInsuficiente;
 
     public CaixaEletronico()
     {
@@ -15,6 +19,13 @@
             Sinal = SinalOperacao.Credito
         };
         itensExtrato.Add(item);
+
+        OnSaldoInsuficiente += MostraMensagemSaldoInsuficiente;
+    }
+
+    private void MostraMensagemSaldoInsuficiente()
+    {
+        Console.WriteLine("Saldo insuficiente.");
     }
 
     public void Saldo()
@@ -55,7 +66,7 @@
     {
         if (valor > saldo)
         {
-            Console.WriteLine("Saldo insuficiente.");
+            OnSaldoInsuficiente?.Invoke();
         }
         else
         {
@@ -78,7 +89,7 @@
     {
         if (valor > saldo)
         {
-            Console.WriteLine("Saldo insuficiente.");
+            OnSaldoInsuficiente?.Invoke();
         }
         else
         {
