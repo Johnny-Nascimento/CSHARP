@@ -134,6 +134,7 @@
             btn0.Size = new Size(106, 82);
             btn0.TabIndex = 29;
             btn0.UseVisualStyleBackColor = false;
+            btn0.Click += btnNumero_Click;
             btn0.MouseDown += btn_MouseDown;
             btn0.MouseUp += btn_MouseUp;
             // 
@@ -183,6 +184,7 @@
             btn9.Size = new Size(106, 82);
             btn9.TabIndex = 26;
             btn9.UseVisualStyleBackColor = false;
+            btn9.Click += btnNumero_Click;
             btn9.MouseDown += btn_MouseDown;
             btn9.MouseUp += btn_MouseUp;
             // 
@@ -199,6 +201,7 @@
             btn8.Size = new Size(106, 82);
             btn8.TabIndex = 25;
             btn8.UseVisualStyleBackColor = false;
+            btn8.Click += btnNumero_Click;
             btn8.MouseDown += btn_MouseDown;
             btn8.MouseUp += btn_MouseUp;
             // 
@@ -215,6 +218,7 @@
             btn7.Size = new Size(106, 82);
             btn7.TabIndex = 24;
             btn7.UseVisualStyleBackColor = false;
+            btn7.Click += btnNumero_Click;
             btn7.MouseDown += btn_MouseDown;
             btn7.MouseUp += btn_MouseUp;
             // 
@@ -248,6 +252,7 @@
             btn6.Size = new Size(106, 82);
             btn6.TabIndex = 22;
             btn6.UseVisualStyleBackColor = false;
+            btn6.Click += btnNumero_Click;
             btn6.MouseDown += btn_MouseDown;
             btn6.MouseUp += btn_MouseUp;
             // 
@@ -264,6 +269,7 @@
             btn5.Size = new Size(106, 82);
             btn5.TabIndex = 21;
             btn5.UseVisualStyleBackColor = false;
+            btn5.Click += btnNumero_Click;
             btn5.MouseDown += btn_MouseDown;
             btn5.MouseUp += btn_MouseUp;
             // 
@@ -280,6 +286,7 @@
             btn4.Size = new Size(106, 82);
             btn4.TabIndex = 20;
             btn4.UseVisualStyleBackColor = false;
+            btn4.Click += btnNumero_Click;
             btn4.MouseDown += btn_MouseDown;
             btn4.MouseUp += btn_MouseUp;
             // 
@@ -313,6 +320,7 @@
             btn3.Size = new Size(106, 82);
             btn3.TabIndex = 18;
             btn3.UseVisualStyleBackColor = false;
+            btn3.Click += btnNumero_Click;
             btn3.MouseDown += btn_MouseDown;
             btn3.MouseUp += btn_MouseUp;
             // 
@@ -329,6 +337,7 @@
             btn2.Size = new Size(106, 82);
             btn2.TabIndex = 17;
             btn2.UseVisualStyleBackColor = false;
+            btn2.Click += btnNumero_Click;
             btn2.MouseDown += btn_MouseDown;
             btn2.MouseUp += btn_MouseUp;
             // 
@@ -345,6 +354,7 @@
             btn1.Size = new Size(106, 82);
             btn1.TabIndex = 16;
             btn1.UseVisualStyleBackColor = false;
+            btn1.Click += btnNumero_Click;
             btn1.MouseDown += btn_MouseDown;
             btn1.MouseUp += btn_MouseUp;
             // 
