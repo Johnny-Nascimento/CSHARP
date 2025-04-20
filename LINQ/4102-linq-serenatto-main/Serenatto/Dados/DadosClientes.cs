@@ -21,7 +21,6 @@ public class DadosClientes
             new Cliente { Id = Guid.NewGuid(), Nome = "Victor Santos", Endereco = "Rua da Liberdade, 345", Telefone = "(27) 98765-4321", Pedidos = [] },
             new Cliente { Id = Guid.NewGuid(), Nome = "Beatriz Silva", Endereco = "Avenida Central, 987", Telefone = "(16) 12345-6789", Pedidos = [] },
             new Cliente { Id = Guid.NewGuid(), Nome = "Henrique Almeida", Endereco = "Rua da Paz, 234", Telefone = "(18) 98765-4321", Pedidos = [] }
-
         };
         return clientes;
     }
