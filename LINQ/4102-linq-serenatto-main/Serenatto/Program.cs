@@ -28,11 +28,14 @@ void LinhaSeparadora(List<int> espacos)
 {
     var totalEspacos = espacos.Sum();
 
-    Console.WriteLine(new string('_', totalEspacos));
+    Console.WriteLine(new string('-', totalEspacos));
 }
 
 void MontaCabecalhoClientes()
 {
+    Console.WriteLine("RELATORIO DE CLIENTES");
+
+
     var espacoEspacador = ESPACO_SEPARADOR.Length;
 
     Justifica(ID      , maiorId       + espacoEspacador);
@@ -68,3 +71,22 @@ void ListaDados()
 }
 
 ListaDados();
+
+
+FinalizaLinha();
+Console.WriteLine("-------------------------------");
+Console.WriteLine("RELATORIO DE FORMA DE PAGAMENTO");
+
+var formasPagamento = DadosFormaDePagamento.FormasDePagamento;
+
+var pesquisa = from p in formasPagamento
+               where p.Contains('c') 
+               select p;
+
+Console.WriteLine(string.Join(" ", pesquisa));
+
+var pesquisa2 = formasPagamento.Where(p => p.Contains('c'));
+Console.WriteLine(string.Join(" ", pesquisa2));
+
+var pesquisaCliente = listaClientes.Where(p => p.Nome.StartsWith('A')).Select(p => p.Nome);
+Console.WriteLine(string.Join(" ", pesquisaCliente));
