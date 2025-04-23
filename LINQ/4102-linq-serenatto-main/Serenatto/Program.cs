@@ -1,236 +1,379 @@
 ﻿using SerenattoEnsaio.Dados;
+using Microsoft.Data.SqlClient;
+using Serenatto.Dados;
 using SerenattoEnsaio.Modelos;
 using SerenattoPreGravacao.Dados;
+using System.Configuration;
 
-const string ID       = "ID";
-const string NOME     = "NOME";
-const string ENDERECO = "ENDERECO";
-const string TELEFONE = "TELEFONE";
-const string ESPACO_SEPARADOR = " | ";
+IEnumerable<Cliente> clientes = DadosClientes.GetClientes().ToList();
+IEnumerable<string> formasPagamento = DadosFormaDePagamento.FormasDePagamento;
+IEnumerable<Produto> cardapioLoja = DadosCardapio.GetProdutos();
+IEnumerable<Produto> cardapioDelivery = DadosCardapio.CardapioDelivery();
+IEnumerable<int> totalPedidosMes = DadosPedidos.QuantidadeItensPedidosPorDia.SelectMany(lista => lista);
+IEnumerable<Produto> carrinho = DadosCarrinho.GetProdutosCarrinho();
+string connectionString = ConfigurationManager.ConnectionStrings["database"].ConnectionString;
 
-List<Cliente> listaClientes = DadosClientes.GetClientes();
-
-var maiorId       = Math.Max(ID.Length       , listaClientes.Max(x => x.Id.ToString().Length));
-var maiorNome     = Math.Max(NOME.Length     , listaClientes.Max(x => x.Nome.Length));
-var maiorEndereco = Math.Max(ENDERECO.Length , listaClientes.Max(x => x.Endereco.Length));
-var maiorTelefone = Math.Max( TELEFONE.Length, listaClientes.Max(x => x.Telefone.Length));
-
-void FinalizaLinha()
-{
-    Console.WriteLine();
-}
-
-void Justifica(string texto, int espaco)
-{
-    Console.Write(texto.PadRight(espaco));
-}
-
-void LinhaSeparadora(List<int> espacos)
-{
-    var totalEspacos = espacos.Sum();
-
-    Console.WriteLine(new string('-', totalEspacos));
-}
-
-void MontaCabecalhoClientes()
-{
-    Console.WriteLine("RELATORIO DE CLIENTES");
-
-
-    var espacoEspacador = ESPACO_SEPARADOR.Length;
-
-    Justifica(ID      , maiorId       + espacoEspacador);
-    Justifica(NOME    , maiorNome     + espacoEspacador);
-    Justifica(ENDERECO, maiorEndereco + espacoEspacador);
-    Justifica(TELEFONE, maiorTelefone + espacoEspacador);
-
-    FinalizaLinha();
-
-    LinhaSeparadora(new List<int> { maiorId, maiorNome, maiorEndereco, maiorTelefone, ESPACO_SEPARADOR.Length * 4 });
-}
-
-void ListaDados()
-{
-    MontaCabecalhoClientes();
-
-    foreach (var cliente in listaClientes)
+Console.WriteLine("RELATÓRIO DE DADOS CLIENTES");
+foreach (var cliente in clientes)
+    using (var context = new SerenattoContext())
     {
-        Justifica(cliente.Id.ToString(), maiorId);
-        Console.Write(ESPACO_SEPARADOR);
+        Console.WriteLine($"{cliente.Id} | {cliente.Nome} | {cliente.Endereco} | {cliente.Telefone}");
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("----- Boas vindas ao Serenatto -----");
+            Console.WriteLine("1. Cadastrar produto");
+            Console.WriteLine("2. Listar produtos");
+            Console.WriteLine("3. Atualizar produto");
+            Console.WriteLine("4. Excluir produto");
+            Console.WriteLine("5. Sair");
+            Console.Write("Opção: ");
 
-        Justifica(cliente.Nome, maiorNome);
-        Console.Write(ESPACO_SEPARADOR);
+            if (!int.TryParse(Console.ReadLine(), out int opcao))
+            {
+                Console.WriteLine("Opção inválida!");
+                continue;
+            }
 
-        Justifica(cliente.Endereco, maiorEndereco);
-        Console.Write(ESPACO_SEPARADOR);
+            switch (opcao)
+            {
+                case 1:
+                    CadastrarProduto(connectionString);
+                    break;
+                case 2:
+                    ListarProdutos(connectionString);
+                    break;
+                case 3:
+                    AtualizarProduto(connectionString);
+                    break;
+                case 4:
+                    ExcluirProduto(connectionString);
+                    break;
+                case 5:
+                    return;
+                default:
+                    Console.WriteLine("Opção inválida!");
+                    break;
+            }
 
-        Justifica(cliente.Telefone, maiorTelefone);
-        Console.Write(ESPACO_SEPARADOR);
+            Console.WriteLine("Pressione qualquer tecla para continuar...");
+            Console.ReadKey();
 
-        FinalizaLinha();
+        }
+
+        static void CadastrarProduto(string connectionString)
+        {
+            Console.Write("Nome do produto: ");
+            string nome = Console.ReadLine();
+            Console.Write("Preço: ");
+            if (!decimal.TryParse(Console.ReadLine(), out decimal preco))
+            {
+                Console.WriteLine("Preço inválido!");
+                return;
+            }
+            Console.Write("Descrição: ");
+            string descricao = Console.ReadLine();
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = "INSERT INTO Produtos(Id, Nome, Preco, Descricao) VALUES(@Id, @Nome, @Preco, @Descricao)";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", Guid.NewGuid());
+                    command.Parameters.AddWithValue("@Nome",
+         nome);
+                    command.Parameters.AddWithValue("@Preco", preco);
+                    command.Parameters.AddWithValue("@Descricao", descricao);
+
+                    int rowsAffected = command.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        Console.WriteLine("Produto cadastrado com sucesso!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Erro ao cadastrar o produto.");
+                    }
+                }
+            }
+        }
+
+        static void ListarProdutos(string connectionString)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = "SELECT * FROM Produtos";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+
+                    {
+                        if (!reader.HasRows)
+                        {
+                            Console.WriteLine("Não há produtos cadastrados.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Lista de produtos:");
+                            Console.WriteLine("------------------");
+                            Console.WriteLine("ID\tNome\tPreço\tDescrição");
+
+                            while (reader.Read())
+                            {
+                                Guid id = reader.GetGuid(0);
+                                string nome = reader.GetString(1);
+                                decimal preco = reader.GetDecimal(2);
+                                string descricao = reader.GetString(3);
+
+                                Console.WriteLine($"{id}\t{nome}\t{preco}\t{descricao}");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        static void AtualizarProduto(string connectionString)
+        {
+            Console.Write("Digite o ID do produto a ser atualizado: ");
+            if (!Guid.TryParse(Console.ReadLine(), out Guid produtoId))
+            {
+                Console.WriteLine("ID inválido!");
+                return;
+            }
+
+            Console.Write("Novo nome (deixe em branco para manter): ");
+            string novoNome = Console.ReadLine();
+            Console.Write("Novo preço (deixe em branco para manter): ");
+            if (!decimal.TryParse(Console.ReadLine(), out decimal novoPreco))
+            {
+                novoPreco = 0;
+            }
+            Console.Write("Nova descrição (deixe em branco para manter): ");
+            string novaDescricao = Console.ReadLine();
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = @"UPDATE Produtos SET Nome = @NovoNome, Preco = @NovoPreco, Descricao = @NovaDescricao WHERE Id = @ProdutoId";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ProdutoId", produtoId);
+                    command.Parameters.AddWithValue("@NovoNome", novoNome);
+                    command.Parameters.AddWithValue("@NovoPreco", novoPreco);
+                    command.Parameters.AddWithValue("@NovaDescricao", novaDescricao);
+
+                    int rowsAffected = command.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        Console.WriteLine("Produto atualizado com sucesso!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Produto não encontrado ou não houve alterações.");
+                    }
+                }
+            }
+        }
+
+        static void ExcluirProduto(string connectionString)
+        {
+            Console.Write("Digite o ID do produto a ser excluído: ");
+            if (!Guid.TryParse(Console.ReadLine(), out Guid produtoId))
+            {
+                Console.WriteLine("ID inválido!");
+                return;
+            }
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+
+                string query = "DELETE FROM Produtos WHERE Id = @ProdutoId";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ProdutoId", produtoId);
+
+                    int rowsAffected = command.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        Console.WriteLine("Produto excluído com sucesso!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Produto não encontrado.");
+                    }
+                }
+            }
+        }
     }
-}
 
-ListaDados();
-
-
-FinalizaLinha();
-Console.WriteLine("-------------------------------");
-Console.WriteLine("RELATORIO DE FORMA DE PAGAMENTO");
-
-var formasPagamento = DadosFormaDePagamento.FormasDePagamento;
-
+Console.WriteLine("--------------------------------");
+Console.WriteLine("RELATÓRIO FORMAS DE PAGAMENTO");
 var pesquisa = from p in formasPagamento
-               where p.Contains('c') 
+               where p.Contains('c')
                select p;
 
 Console.WriteLine(string.Join(" ", pesquisa));
 
-var pesquisa2 = formasPagamento.Where(p => p.Contains('c'));
+var pesquisa2 = formasPagamento.Where(p => p.StartsWith('d'));
+
 Console.WriteLine(string.Join(" ", pesquisa2));
 
-var pesquisaCliente = listaClientes.Where(p => p.Nome.StartsWith('A')).Select(p => p.Nome);
-Console.WriteLine(string.Join(" ", pesquisaCliente));
+Console.WriteLine("--------------------------------");
+Console.WriteLine("RELATÓRIO DADOS CARDÁPIO LOJA");
 
-FinalizaLinha();
-Console.WriteLine("-------------------------------");
-Console.WriteLine("RELATORIO GERAL DE PRODUTOS");
+cardapioLoja.ToList();
 
-var produtos = DadosCardapio.GetProdutos();
-
-foreach (var produto in produtos)
+foreach (var item in cardapioLoja)
 {
-    Console.WriteLine(produto.Nome + " " + produto.Descricao + " " + produto.Preco);
+    Console.WriteLine($"{item.Id} | {item.Nome} | {item.Descricao} | {item.Preco}");
 }
 
-FinalizaLinha();
-Console.WriteLine("-------------------------------");
-Console.WriteLine("RELATORIO NOME PRODUTO");
+Console.WriteLine("--------------------------------");
+Console.WriteLine("RELATÓRIO PRODUTOS DO CARDÁPIO POR NOME");
 
-var produtosNome = DadosCardapio.GetProdutos().Select(p => p.Nome);
+var produtosPorNome = cardapioLoja.Select(p => p.Nome);
 
-Console.WriteLine(string.Join(" ", produtosNome));
-
-FinalizaLinha();
-Console.WriteLine("-------------------------------");
-Console.WriteLine("RELATORIO NOME PRECO DE PRODUTOS");
-
-var produtosNomePreco = DadosCardapio.GetProdutos().Select(p => new { Nome = p.Nome, Preco = p.Preco});
-
-foreach (var produto in produtosNomePreco)
+foreach (var item in produtosPorNome)
 {
-    Console.WriteLine(produto.Nome + " " + produto.Preco);
+    Console.WriteLine(item);
 }
 
-FinalizaLinha();
-Console.WriteLine("-------------------------------");
-Console.WriteLine("RELATORIO COMPRE 4 PAGUE 3 PRODUTOS");
+Console.WriteLine("--------------------------------");
+Console.WriteLine("RELATÓRIO PRODUTOS POR PREÇO");
 
-var produtosCompre4Pague3 = DadosCardapio.GetProdutos().Select(p => new { Nome = p.Nome, Preco = p.Preco * 3 });
-
-foreach (var produto in produtosCompre4Pague3)
+var produtosPreco = cardapioLoja.Select(c => new
 {
-    Console.WriteLine(produto.Nome + " " + produto.Preco);
+    NomeProduto = c.Nome,
+    PrecoProduto = c.Preco
+});
+
+foreach (var item in produtosPreco)
+{
+    Console.WriteLine($"{item.NomeProduto} | {item.PrecoProduto}");
 }
 
-FinalizaLinha();
-Console.WriteLine("-------------------------------");
-Console.WriteLine("RELATORIO TODOS PEDIDOS MES");
+Console.WriteLine("--------------------------------");
+Console.WriteLine("RELATÓRIO PRODUTOS POR PREÇO NO COMBO LEVE 4 E PAGUE 3");
 
-var pedidos = DadosPedidos.QuantidadeItensPedidosPorDia.SelectMany(lista => lista);
-
-foreach (var pedido in pedidos)
+var produtosPrecoCombo = cardapioLoja.Select(c => new
 {
-    Console.Write(pedido + " ");
+    NomeProduto = c.Nome,
+    PrecoCombo = c.Preco * 3
+});
+
+foreach (var item in produtosPrecoCombo)
+{
+    Console.WriteLine($"{item.NomeProduto} | {item.PrecoCombo}");
 }
 
-FinalizaLinha();
-Console.WriteLine("-------------------------------");
-Console.WriteLine("RELATORIO PEDIDOS COM ITEM UNICO NO MES");
+Console.WriteLine("--------------------------------");
+Console.WriteLine("RELATÓRIO QUANTIDADE PRODUTOS PEDIDOS NO MÊS");
 
-var pedidosItemUnico = DadosPedidos.QuantidadeItensPedidosPorDia.SelectMany(lista => lista).Count(p => p == 1); 
-Console.Write(pedidosItemUnico);
-
-FinalizaLinha();
-Console.WriteLine("-------------------------------");
-Console.WriteLine("RELATORIO TODAS AS QUANTIDADES DE PEDIDOS DIFERENTES");
-
-// Distinct: quando você deseja remover elementos duplicados de uma sequência, com base em uma chave de comparação;
-var pedidosQuantidadesDiferentes = DadosPedidos.QuantidadeItensPedidosPorDia.SelectMany(lista => lista).Distinct();
-
-foreach (var pedido in pedidosQuantidadesDiferentes)
+foreach (var pedido in totalPedidosMes)
 {
-    Console.Write(pedido + " ");
+    Console.Write($"{pedido} ");
 }
 
+Console.WriteLine(" ");
+Console.WriteLine("--------------------------------");
+Console.WriteLine("RELATÓRIO TOTAL DE PEDIDOS INDIVIDUAIS NO MÊS");
 
-FinalizaLinha();
-Console.WriteLine("-------------------------------");
-Console.WriteLine("RELATORIO PRODUTOS QUE ESTÃO NO CARDAPIO E NÃO NO DELIVERY");
+var pedidosIndividuais = totalPedidosMes
+    .Count(numero => numero == 1);
 
-var produtosCardapio = DadosCardapio.GetProdutos().Select(p => p.Nome);
-var produtosDelivery = DadosCardapio.CardapioDelivery().Select(p => p.Nome);
+Console.WriteLine($"O total de pedidos individuais foi: {pedidosIndividuais}");
 
-// Except: quando você deseja encontrar elementos que estão presentes em uma sequência, mas não em outra, com base em uma chave de comparação; 
-var excecoes = produtosCardapio.Except(produtosDelivery);
+Console.WriteLine("--------------------------------");
+Console.WriteLine("RELATÓRIO PEDIDOS COM QUANTIDADES DIFERENTES DE ITENS");
 
-foreach (var produto in excecoes)
+IEnumerable<int> totalPedidosDiferentesMes = totalPedidosMes.Distinct();
+
+foreach (var pedido in totalPedidosDiferentesMes)
 {
-    Console.Write(produto + " ");
+    Console.Write($"{pedido} ");
 }
 
-FinalizaLinha();
-Console.WriteLine("-------------------------------");
-Console.WriteLine("RELATORIO PRODUTOS QUE ESTÃO NOS DOIS CARDAPIOS");
+Console.WriteLine("--------------------------------");
+Console.WriteLine("RELATÓRIO PRODUTOS SOMENTE LOJA");
 
-// Intersect: quando você deseja encontrar elementos que estão presentes em ambas as sequências, com base em uma chave de comparação;
-var intersect = produtosCardapio.Intersect(produtosDelivery);
+IEnumerable<string> produtoCardapioLoja = cardapioLoja.Select(p => p.Nome);
+IEnumerable<string> produtoCardapioDelivery = cardapioDelivery.Select(p => p.Nome);
 
-foreach (var produto in intersect)
+var produtosSomenteLoja = produtoCardapioLoja.Except(produtoCardapioDelivery).ToList();
+
+foreach (var produto in produtosSomenteLoja)
 {
     Console.WriteLine(produto);
 }
 
-FinalizaLinha();
-Console.WriteLine("-------------------------------");
-Console.WriteLine("RELATORIO TDOOS PRODUTOS DA LOJA");
+Console.WriteLine("--------------------------------");
+Console.WriteLine("RELATÓRIO PRODUTOS LOJA E DELIVERY");
 
-// Union: quando você deseja combinar elementos de duas sequências, removendo duplicados com base em uma chave de comparação.
-var unioes = produtosCardapio.Union(produtosDelivery);
+var listaProdutosLojaEDelivery = produtoCardapioLoja.Intersect(produtoCardapioDelivery).ToList();
 
-foreach (var produto in unioes)
+foreach (var item in listaProdutosLojaEDelivery)
 {
-    Console.WriteLine(produto);
+    Console.WriteLine(item);
 }
 
-FinalizaLinha();
-Console.WriteLine("-------------------------------");
-Console.WriteLine("RELATORIO PRODUTOS ORDENADOS POR NOME E PRECO");
+Console.WriteLine("--------------------------------");
+Console.WriteLine("RELATÓRIO TODOS OS PRODUTOS CARDÁPIO");
 
-var produtosOrdenados = DadosCardapio.GetProdutos().OrderBy(p => p.Nome).ThenBy(p => p.Preco);
+var listaProdutosGeral = produtoCardapioLoja.Union(produtoCardapioDelivery).ToList();
 
-foreach (var produto in produtosOrdenados)
+foreach (var item in listaProdutosGeral)
 {
-    Console.WriteLine(produto.Nome + " " + produto.Preco);
+    Console.WriteLine(item);
 }
 
-FinalizaLinha();
-Console.WriteLine("-------------------------------");
-Console.WriteLine("RELATORIO CARRINHO DE COMPRAS");
+Console.WriteLine("--------------------------------");
+Console.WriteLine("RELATÓRIO PRODUTOS ORDENADOS POR NOME E PREÇO");
 
-var carrinho = DadosCarrinho.GetProdutosCarrinho().Select(p => p.Nome);
-var precoCarrinho = DadosCarrinho.GetProdutosCarrinho().Select(p => p.Preco);
+var cardapioOrdenado = cardapioLoja
+    .OrderBy(p => p.Nome)
+    .ThenBy(p => p.Preco);
 
-string resultado = carrinho.Aggregate((p1, p2) => p1 + ", " + p2);
-var valorFinal = precoCarrinho.Sum();
-var quantidadeItensCarrinho = carrinho.Count();
-
-Console.WriteLine(resultado + " " + valorFinal + " " + quantidadeItensCarrinho);
-
-var produtosPorNome = DadosCarrinho.GetProdutosCarrinho().GroupBy(p => p.Nome);
-
-foreach (var produto in produtosPorNome)
+foreach (var item in cardapioOrdenado)
 {
-    Console.WriteLine(produto.Key);
-    Console.WriteLine(produto.Count());
+    Console.WriteLine($"{item.Nome} | {item.Preco}");
 }
+
+Console.WriteLine("--------------------------------");
+Console.WriteLine("RELATÓRIO CARRINHO DE COMPRAS");
+
+IEnumerable<string> nomeProdutos = carrinho.Select(c => c.Nome);
+IEnumerable<decimal> precoProdutos = carrinho.Select(p => p.Preco);
+
+string resultado = nomeProdutos.Aggregate((p1, p2) => p1 + ", " + p2);
+//decimal valorFinal = precoProdutos.Aggregate((n1, n2) => n1 + n2);
+decimal valorFinal = precoProdutos.Sum();
+
+var numeroProdutos = nomeProdutos.Count();
+
+var grupoPorNome = carrinho.GroupBy(p => p.Nome);
+
+Console.WriteLine(resultado);
+Console.WriteLine($"Total de produtos do carrinho: {numeroProdutos}");
+
+foreach (var grupo in grupoPorNome)
+{
+    Console.WriteLine($"Nome do produto: {grupo.Key}");
+    Console.WriteLine($"Numero de produtos: {grupo.Count()}");
+}
+
+
+Console.WriteLine($"Valor total da compra: {valorFinal}");
