@@ -1,0 +1,72 @@
+
+CREATE TABLE Produtos (
+    Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
+    Nome VARCHAR(100) NOT NULL,
+    Preco DECIMAL(10,2) NOT NULL,
+    Descricao TEXT
+);
+
+CREATE TABLE Clientes (
+    Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
+    Nome VARCHAR(100) NOT NULL,
+    Endereco VARCHAR(200),
+    Telefone VARCHAR(20)
+);
+
+CREATE TABLE Pedidos (
+    Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
+    Data DATETIME NOT NULL DEFAULT GETDATE(),
+    ClienteId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES Clientes(Id)
+);
+
+CREATE TABLE ItensPedido (
+    Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
+    PedidoId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES Pedidos(Id),
+    ProdutoId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES Produtos(Id),
+    Quantidade INT NOT NULL
+);
+
+CREATE TABLE Pagamentos (
+    Id UNIQUEIDENTIFIER DEFAULT NEWID() PRIMARY KEY,
+    PedidoId UNIQUEIDENTIFIER FOREIGN KEY REFERENCES Pedidos(Id),
+    FormaPagamento VARCHAR(50),
+    ValorTotal DECIMAL(10,2) NOT NULL,
+    Data DATETIME NOT NULL DEFAULT GETDATE()
+);
+
+DECLARE @i INT = 1;
+
+WHILE @i <= 30
+BEGIN
+    DECLARE @ProdutoId UNIQUEIDENTIFIER = NEWID();
+    DECLARE @ClienteId UNIQUEIDENTIFIER = NEWID();
+    DECLARE @PedidoId UNIQUEIDENTIFIER = NEWID();
+    DECLARE @Quantidade INT = ROUND(RAND() * 5, 0) + 1;
+    DECLARE @Preco DECIMAL(10,2) = ROUND(RAND() * 100, 2);
+    DECLARE @ValorTotal DECIMAL(10,2);
+
+    -- Inserindo produto
+    INSERT INTO Produtos (Id, Nome, Preco, Descricao)
+    VALUES (@ProdutoId, 'Produto ' + CAST(@i AS VARCHAR), @Preco, 'Descrição do produto ' + CAST(@i AS VARCHAR));
+
+    -- Inserindo cliente
+    INSERT INTO Clientes (Id, Nome, Endereco, Telefone)
+    VALUES (@ClienteId, 'Cliente ' + CAST(@i AS VARCHAR), 'Rua ' + CAST(@i AS VARCHAR), '(11) 9' + CAST(ROUND(RAND() * 99999999, 0) AS VARCHAR));
+
+    -- Inserindo pedido
+    INSERT INTO Pedidos (Id, ClienteId)
+    VALUES (@PedidoId, @ClienteId);
+
+    -- Inserindo item do pedido
+    INSERT INTO ItensPedido (Id, PedidoId, ProdutoId, Quantidade)
+    VALUES (NEWID(), @PedidoId, @ProdutoId, @Quantidade);
+
+    -- Calculando total
+    SET @ValorTotal = @Preco * @Quantidade;
+
+    -- Inserindo pagamento
+    INSERT INTO Pagamentos (Id, PedidoId, FormaPagamento, ValorTotal)
+    VALUES (NEWID(), @PedidoId, 'Cartão de Crédito', @ValorTotal);
+
+    SET @i = @i + 1;
+END;

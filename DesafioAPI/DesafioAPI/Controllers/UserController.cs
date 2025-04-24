@@ -56,7 +56,12 @@ namespace DesafioAPI.Controllers
                     PropertyNameCaseInsensitive = true
                 };
 
-                var listaUsuario = JsonSerializer.Deserialize<List<Usuario>>(jsonContent, options);
+                List<Usuario> listaUsuario;
+
+                using (var fileStream = file.OpenReadStream())
+                {
+                    listaUsuario  = await JsonSerializer.DeserializeAsync<List<Usuario>>(fileStream, options);
+                }
 
                 _context.usuarios.AddRange(listaUsuario);
                 _context.SaveChanges();
