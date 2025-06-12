@@ -3,6 +3,7 @@ using MedVoll.Web.Exceptions;
 using MedVoll.Web.Interfaces;
 using MedVoll.Web.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MedVoll.Web.Controllers
@@ -14,8 +15,10 @@ namespace MedVoll.Web.Controllers
         private const string PaginaListagem = "Listagem";
         private const string PaginaCadastro = "Formulario";
         private readonly IMedicoService _service;
+        private readonly SignInManager<IdentityUser> _signInManager;
 
-        public MedicoController(IMedicoService service)
+        public MedicoController(IMedicoService service, SignInManager<IdentityUser> signInManager)
+            : base(signInManager)
         {
             _service = service;
         }
