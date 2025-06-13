@@ -17,6 +17,20 @@ namespace MedVoll.Web.Data
             // Cria os usuários
             await CreateUserAsync(userManager, "alice@smith.com", "Password@123", userRole);
             await CreateUserAsync(userManager, "bob@smith.com", "Password@123", userRole);
+
+            // Verifica e adiciona a role de Admin e verifica e atribui a usuaria alice
+            {
+                const string adminRole = "Admin";
+
+                if (!await roleManager.RoleExistsAsync(adminRole))
+                    await roleManager.CreateAsync(new IdentityRole(adminRole));
+
+                IdentityUser? alice = await userManager.FindByEmailAsync("alice@smith.com");
+
+                IList<IdentityUser> admins = await userManager.GetUsersInRoleAsync(adminRole);
+                if (!admins.Any(a => a.Email == alice.Email))
+                    await userManager.AddToRoleAsync(alice, adminRole);
+            }
         }
         private static async Task CreateUserAsync(UserManager<IdentityUser> userManager, string email, string password, string role)
         {

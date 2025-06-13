@@ -43,6 +43,7 @@ namespace MedVoll.Web.Controllers
             return View(PaginaCadastro, dados);
         }
 
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         [HttpPost]
         [Route("")]
