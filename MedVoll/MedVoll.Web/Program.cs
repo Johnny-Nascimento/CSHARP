@@ -49,7 +49,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";               // Redireciona para login se não autenticado
     options.LogoutPath = "/Identity/Account/Logout";             // Caminho para logout
-    options.AccessDeniedPath = "/Identity/Account/AccessDenied"; // Caminho para acesso negado
+    options.AccessDeniedPath = "/AccessDenied/AccessDenied";     // Caminho para acesso negado
     options.ExpireTimeSpan = TimeSpan.FromMinutes(2);            // Tempo de expiração
     options.SlidingExpiration = true;                            // Renova o cookie automaticamente
 

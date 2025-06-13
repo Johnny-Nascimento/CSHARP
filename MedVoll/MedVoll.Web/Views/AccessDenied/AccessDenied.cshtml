@@ -1,0 +1,9 @@
+﻿@{
+    ViewData["Title"] = "Acesso Negado";
+}
+
+<div class="access-denied-container">
+    <h2>@ViewData["Title"]</h2>
+    <p>@ViewBag.Message</p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Voltar para a Home</a>
+</div>

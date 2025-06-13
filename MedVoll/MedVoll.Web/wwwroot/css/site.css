@@ -12,3 +12,20 @@ html {
   position: relative;
   min-height: 100%;
 }
+
+.access-denied-container {
+    background-color: #ffe6e6;
+    padding: 40px;
+    border-radius: 8px;
+    color: #b30000;
+    font-family: 'Segoe UI', sans-serif;
+    text-align: center;
+}
+
+.access-denied-container h2 {
+    font-size: 28px;
+}
+
+.access-denied-container p {
+    font-size: 18px;
+}
