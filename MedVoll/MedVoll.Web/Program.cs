@@ -120,4 +120,14 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+app.Use(async (context, next) =>
+{
+    // Restringe fontes de conteúdo para evitar XSS.
+    context.Response.Headers.Add("Content-Security-Policy", "default-src 'self'; script-src 'self';");
+
+    // Previne a interpretação incorreta de MIME types.
+    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+    await next();
+});
+
 app.Run();
