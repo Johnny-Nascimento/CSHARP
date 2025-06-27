@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using RestauranteService.Data;
-using RestauranteService.ItemServiceHttpClient;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,13 +17,12 @@ builder.Services.AddDbContext<AppDbContext>(opt => opt.UseMySql(connectionString
 
 builder.Services.AddScoped<IRestauranteRepository, RestauranteRepository>();
 
-builder.Services.AddHttpClient<IItemServiceHttpClient, ItemServiceHttpClient>();
-
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies()); 
 
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "RestauranteService", Version = "v1" });
+    c.CustomSchemaIds(type => type.FullName.Replace("+", "."));
 });
 
 
